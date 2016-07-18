@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Hello</string>
     <string name="action_settings">Settings</string>
+
+    <string name="temperature">temperature</string>
+    <string name="colon">: </string>
 </resources>

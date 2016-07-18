@@ -1,0 +1,104 @@
+package com.alex9xu.hello.activities;
+
+import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v4.util.ArrayMap;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.TextView;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import com.alex9xu.hello.R;
+import com.alex9xu.hello.model.Entity.Weatherinfo;
+import com.alex9xu.hello.model.WeatherResult;
+import com.alex9xu.hello.net.RetrofitBase;
+import com.alex9xu.hello.net.apis.CityWeatherApi;
+import com.alex9xu.hello.utils.LogHelper;
+
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
+
+    private TextView mTvwShowInfo;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Alex9Xu@hotmail.com", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+
+        mTvwShowInfo = (TextView) findViewById(R.id.main_tvw_show_info);
+
+        getData();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void getData() {
+        // Notice: ArrayMap requires less memory in Android compare with HashMap (about 10%)
+        ArrayMap<String,String> paramMap = new ArrayMap<>();
+        paramMap.put("deviceType", "android");
+        paramMap.put("uid", "654321");
+
+        CityWeatherApi classifyApi = RetrofitBase.retrofit().create(CityWeatherApi.class);
+        Call<WeatherResult> call = classifyApi.getClassify(paramMap);
+        call.enqueue(new Callback<WeatherResult>() {
+            @Override
+            public void onResponse(Call<WeatherResult> call, Response<WeatherResult> response) {
+                LogHelper.d(TAG, "getClassify, Suc");
+                LogHelper.d(TAG, "getClassify = " + response.body());
+                if(null != response.body() && null != response.body().getWeatherinfo()) {
+                    Weatherinfo info  = response.body().getWeatherinfo();
+                    StringBuilder strBld = new StringBuilder();
+                    strBld.append(info.getCity());
+                    strBld.append(getString(R.string.temperature));
+                    strBld.append(getString(R.string.colon));
+                    strBld.append(info.getTemp());
+                    mTvwShowInfo.setText(strBld.toString());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<WeatherResult> call, Throwable t) {
+                LogHelper.e(TAG, "getClassify, Fail");
+            }
+        });
+    }
+
+}
