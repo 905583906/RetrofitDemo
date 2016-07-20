@@ -78,7 +78,7 @@ public class MainActivity extends BaseActivity {
         // Notice: ArrayMap requires less memory in Android compare with HashMap (about 10%)
         CityWeatherApi classifyApi = RetrofitBase.retrofit().create(CityWeatherApi.class);
         ArrayMap<String,String> paramMap = new ArrayMap<>();
-        paramMap.put("deviceType", "android");
+        paramMap.put("sortType", "1");
         paramMap.put("uid", "654321");
         mWeatherCall = classifyApi.getClassify(paramMap);
 
