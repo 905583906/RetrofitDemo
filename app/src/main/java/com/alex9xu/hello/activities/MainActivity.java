@@ -16,16 +16,20 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import com.alex9xu.hello.R;
+import com.alex9xu.hello.base.BaseActivity;
 import com.alex9xu.hello.model.Entity.Weatherinfo;
 import com.alex9xu.hello.model.WeatherResult;
+import com.alex9xu.hello.net.NetRequestListener;
 import com.alex9xu.hello.net.RetrofitBase;
 import com.alex9xu.hello.net.apis.CityWeatherApi;
 import com.alex9xu.hello.utils.LogHelper;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
+    // Note: make all the Activities extends BaseActivity to manage
     private static final String TAG = "MainActivity";
 
     private TextView mTvwShowInfo;
+    private Call<WeatherResult> mWeatherCall;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,19 +76,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void getData() {
         // Notice: ArrayMap requires less memory in Android compare with HashMap (about 10%)
+        CityWeatherApi classifyApi = RetrofitBase.retrofit().create(CityWeatherApi.class);
         ArrayMap<String,String> paramMap = new ArrayMap<>();
         paramMap.put("deviceType", "android");
         paramMap.put("uid", "654321");
+        mWeatherCall = classifyApi.getClassify(paramMap);
 
-        CityWeatherApi classifyApi = RetrofitBase.retrofit().create(CityWeatherApi.class);
-        Call<WeatherResult> call = classifyApi.getClassify(paramMap);
-        call.enqueue(new Callback<WeatherResult>() {
+        RetrofitBase.AddToEnqueue(mWeatherCall, MainActivity.this, true, new NetRequestListener() {
             @Override
-            public void onResponse(Call<WeatherResult> call, Response<WeatherResult> response) {
-                LogHelper.d(TAG, "getClassify, Suc");
-                LogHelper.d(TAG, "getClassify = " + response.body());
-                if(null != response.body() && null != response.body().getWeatherinfo()) {
-                    Weatherinfo info  = response.body().getWeatherinfo();
+            public void onRequestSuc(int code, Response response) {
+                LogHelper.d(TAG, "onRequestSuc");
+                Response<WeatherResult> resultResponse = response;
+                if(null != resultResponse.body().getWeatherinfo()) {
+                    Weatherinfo info  = resultResponse.body().getWeatherinfo();
                     StringBuilder strBld = new StringBuilder();
                     strBld.append(info.getCity());
                     strBld.append(getString(R.string.temperature));
@@ -95,10 +99,17 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<WeatherResult> call, Throwable t) {
-                LogHelper.e(TAG, "getClassify, Fail");
+            public void onRequestFail(int code, String reason) {
+                LogHelper.d(TAG, "onRequestFail: " + code + ", " + reason);
             }
         });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Notice: If the web operate is to update UI, you can cancel it when onStop
+        mWeatherCall.cancel();
     }
 
 }

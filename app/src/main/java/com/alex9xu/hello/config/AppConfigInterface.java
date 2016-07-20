@@ -13,11 +13,18 @@ public interface AppConfigInterface {
 //    String BASE_COM_URL = "http://www.weather.com.cn/";
 //    boolean isDebug = false;
 
-    String VERSION = "1.0";
+    String VERSION = "1.1.0";
     String SERVER_CALL_VERSION = "1002";
+    String TO_SERVER_VERSION = "1.0";
+    String DEVICE_TYPE = "android";
 
     /**
-     * 获取分类接口
+     * Network Status Code
+     */
+    int RESULT_FAIL_UNKNOW = -1;
+
+    /**
+     * Get Data Url (Not Need Common part)
      */
     String GET_WEATHER = BASE_COM_URL + "/adat/sk/101010100.html";
 
