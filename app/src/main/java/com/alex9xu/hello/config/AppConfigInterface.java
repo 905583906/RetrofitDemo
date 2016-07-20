@@ -26,6 +26,6 @@ public interface AppConfigInterface {
     /**
      * Get Data Url (Not Need Common part)
      */
-    String GET_WEATHER = BASE_COM_URL + "/adat/sk/101010100.html";
+    String GET_WEATHER = "/adat/sk/101010100.html";
 
 }

@@ -24,6 +24,10 @@ import com.alex9xu.hello.net.RetrofitBase;
 import com.alex9xu.hello.net.apis.CityWeatherApi;
 import com.alex9xu.hello.utils.LogHelper;
 
+/**
+ * Created by Alex9Xu@hotmail.com on 2016/7/14
+ */
+
 public class MainActivity extends BaseActivity {
     // Note: make all the Activities extends BaseActivity to manage
     private static final String TAG = "MainActivity";
