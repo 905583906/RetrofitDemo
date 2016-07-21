@@ -113,7 +113,9 @@ public class MainActivity extends BaseActivity {
     protected void onStop() {
         super.onStop();
         // Notice: If the web operate is to update UI, you can cancel it when onStop
-        mWeatherCall.cancel();
+        if(null != mWeatherCall && ! mWeatherCall.isExecuted()) {
+            mWeatherCall.cancel();
+        }
     }
 
 }
