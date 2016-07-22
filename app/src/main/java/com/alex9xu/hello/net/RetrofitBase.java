@@ -15,11 +15,16 @@ import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import com.alex9xu.hello.R;
+import com.alex9xu.hello.base.DemoApp;
 import com.alex9xu.hello.config.AppConfigInterface;
 import com.alex9xu.hello.utils.LogHelper;
+import com.alex9xu.hello.utils.NetConnectUtil;
+import com.alex9xu.hello.utils.ToastUtils;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Alex9Xu@hotmail.com on 2016/7/13
@@ -33,68 +38,58 @@ public class RetrofitBase {
 
     public static Retrofit retrofit() {
         if (mRetrofit == null) {
-            OkHttpClient client;
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.addInterceptor(new Interceptor() {
+                @Override
+                public Response intercept(Chain chain) throws IOException {
+                    Request original = chain.request();
+                    HttpUrl httpUrl = original.url().newBuilder()
+                            .addQueryParameter("call_version", AppConfigInterface.TO_SERVER_VERSION)
+                            .addQueryParameter("deviceType", AppConfigInterface.DEVICE_TYPE)
+                            .build();
+                    // Request customization: add request headers
+                    Request request = original.newBuilder()
+                            .addHeader("user-agent", "android")
+                            .url(httpUrl)
+                            .build();
+
+                    return chain.proceed(request);
+                }
+            }).connectTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(10, TimeUnit.SECONDS)
+                    .writeTimeout(10, TimeUnit.SECONDS)
+                    .retryOnConnectionFailure(false);
 
             // Notice: The only differ of debug is: HttpLoggingInterceptor
-            // Common Params: "version" and "server_call_version" will in every request
-            if(!AppConfigInterface.isDebug) {
-                client = new OkHttpClient.Builder()
-                        .addInterceptor(new Interceptor() {
-                            @Override
-                            public Response intercept(Chain chain) throws IOException {
-                                Request original = chain.request();
-                                HttpUrl originalHttpUrl = original.url();
-                                HttpUrl url = originalHttpUrl.newBuilder()
-                                        .addQueryParameter("call_version", AppConfigInterface.TO_SERVER_VERSION)
-                                        .addQueryParameter("deviceType", AppConfigInterface.DEVICE_TYPE)
-                                        .build();
-                                // Request customization: add request headers
-                                Request.Builder requestBuilder = original.newBuilder()
-                                        .addHeader("user-agent", "android")
-                                        .url(url);
-                                Request request = requestBuilder.build();
-                                return chain.proceed(request);
-                            }
-                        })
-                        .build();
-            } else {
+            if (AppConfigInterface.isDebug) {
                 HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
                 logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-                client = new OkHttpClient.Builder()
-                        .addInterceptor(logging)
-                        .addInterceptor(new Interceptor() {
-                            @Override
-                            public Response intercept(Chain chain) throws IOException {
-                                Request original = chain.request();
-                                HttpUrl originalHttpUrl = original.url();
-                                HttpUrl url = originalHttpUrl.newBuilder()
-                                        .addQueryParameter("version", AppConfigInterface.TO_SERVER_VERSION)
-                                        .addQueryParameter("deviceType", AppConfigInterface.DEVICE_TYPE)
-                                        .build();
-                                // Request customization: add request headers
-                                Request.Builder requestBuilder = original.newBuilder()
-                                        .addHeader("user-agent", "android")
-                                        .url(url);
-                                Request request = requestBuilder.build();
-                                return chain.proceed(request);
-                            }
-                        })
-                        .build();
+                builder.addInterceptor(logging);
             }
 
+            OkHttpClient client = builder.build();
             mRetrofit = new Retrofit.Builder()
                     .baseUrl(AppConfigInterface.BASE_COM_URL)
                     .addConverterFactory(GsonConverterFactory.create())
                     .client(client)
                     .build();
+
         }
+
         return mRetrofit;
     }
 
     // Encapsulation Request and Response
-    public static <T> void AddToEnqueue(Call<T> baseCall, Context context, boolean isShowDlg,
+    public static <T> void AddToEnqueue(final Call<T> baseCall, final Context context, final boolean isShowDlg,
                                         final NetRequestListener listener) {
         mContextRef = new WeakReference<>(context);
+
+        //if network has error, show it
+        if (! NetConnectUtil.isNetworkConnected(DemoApp.getAppContext())) {
+            ToastUtils.toastShort(R.string.network_not_connect);
+            return;
+        }
+
 //        if(isShowDlg && null == mLoadingDialog && null != mContextRef.get()) {
 //            mLoadingDialog = DialogUtil.showLoginDialog(mContextRef.get());
 //            mLoadingDialog.getWindow().setBackgroundDrawable(new BitmapDrawable());

@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.util.ArrayMap;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
@@ -12,7 +11,6 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 
 import com.alex9xu.hello.R;
@@ -30,10 +28,10 @@ import com.alex9xu.hello.utils.LogHelper;
 
 public class MainActivity extends BaseActivity {
     // Note: make all the Activities extends BaseActivity to manage
+
     private static final String TAG = "MainActivity";
 
     private TextView mTvwShowInfo;
-    private Call<WeatherResult> mWeatherCall;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,15 +82,17 @@ public class MainActivity extends BaseActivity {
         ArrayMap<String,String> paramMap = new ArrayMap<>();
         paramMap.put("sortType", "1");
         paramMap.put("uid", "654321");
-        mWeatherCall = classifyApi.getClassify(paramMap);
+        Call<WeatherResult> weatherCall = classifyApi.getClassify(paramMap);
 
-        RetrofitBase.AddToEnqueue(mWeatherCall, MainActivity.this, true, new NetRequestListener() {
+        // Note: Always use this way to make network request
+        // If not UI call, such as download, use addToNonUiCallEnqueue
+        addToUiCallEnqueue(weatherCall, MainActivity.this, true, new NetRequestListener() {
             @Override
             public void onRequestSuc(int code, Response response) {
                 LogHelper.d(TAG, "onRequestSuc");
                 Response<WeatherResult> resultResponse = response;
-                if(null != resultResponse.body().getWeatherinfo()) {
-                    Weatherinfo info  = resultResponse.body().getWeatherinfo();
+                if (null != resultResponse.body().getWeatherinfo()) {
+                    Weatherinfo info = resultResponse.body().getWeatherinfo();
                     StringBuilder strBld = new StringBuilder();
                     strBld.append(info.getCity());
                     strBld.append(getString(R.string.temperature));
@@ -112,10 +112,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        // Notice: If the web operate is to update UI, you can cancel it when onStop
-        if(null != mWeatherCall && ! mWeatherCall.isExecuted()) {
-            mWeatherCall.cancel();
-        }
     }
 
 }
