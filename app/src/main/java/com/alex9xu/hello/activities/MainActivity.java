@@ -19,7 +19,7 @@ import com.alex9xu.hello.model.Entity.Weatherinfo;
 import com.alex9xu.hello.model.WeatherResult;
 import com.alex9xu.hello.net.NetRequestListener;
 import com.alex9xu.hello.net.RetrofitBase;
-import com.alex9xu.hello.net.apis.CityWeatherApi;
+import com.alex9xu.hello.net.apis.CityWeatherGetApi;
 import com.alex9xu.hello.utils.LogHelper;
 
 /**
@@ -78,7 +78,7 @@ public class MainActivity extends BaseActivity {
 
     private void getData() {
         // Notice: ArrayMap requires less memory in Android compare with HashMap (about 10%)
-        CityWeatherApi classifyApi = RetrofitBase.retrofit().create(CityWeatherApi.class);
+        CityWeatherGetApi classifyApi = RetrofitBase.retrofit().create(CityWeatherGetApi.class);
         ArrayMap<String,String> paramMap = new ArrayMap<>();
         paramMap.put("sortType", "1");
         paramMap.put("uid", "654321");

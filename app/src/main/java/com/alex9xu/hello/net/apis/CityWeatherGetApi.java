@@ -13,7 +13,7 @@ import retrofit2.http.QueryMap;
  * Created by Alex9Xu@hotmail.com on 2016/7/14
  */
 
-public interface CityWeatherApi {
+public interface CityWeatherGetApi {
     @GET(AppConfigInterface.GET_WEATHER)
     Call<WeatherResult> getClassify(@QueryMap ArrayMap<String,String> paramMap);
 }
