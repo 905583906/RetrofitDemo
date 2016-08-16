@@ -1,5 +1,6 @@
 package com.alex9xu.hello.net;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
@@ -50,6 +51,8 @@ public class RetrofitBase {
                     // Request customization: add request headers
                     Request request = original.newBuilder()
                             .addHeader("user-agent", "android")
+                            .addHeader("Accept", "application/x-www-form-urlencoded")
+                            .addHeader("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
                             .url(httpUrl)
                             .build();
 
@@ -90,7 +93,8 @@ public class RetrofitBase {
             return;
         }
 
-//        if(isShowDlg && null == mLoadingDialog && null != mContextRef.get()) {
+//        if(isShowDlg && null == mLoadingDialog) {
+//            mContextRef = new WeakReference<>(context);
 //            mLoadingDialog = DialogUtil.showLoginDialog(mContextRef.get());
 //            mLoadingDialog.getWindow().setBackgroundDrawable(new BitmapDrawable());
 //        }
@@ -105,22 +109,16 @@ public class RetrofitBase {
                 if (null != response.body()) {
                     if(response.code() == 200) {
                         LogHelper.d(TAG, "toEnqueue, onResponse Suc");
-//                        if(null != mLoadingDialog) {
-//                            mLoadingDialog.dismiss();
-//                        }
+                        dismissDlg();
                         listener.onRequestSuc(response.code(), response);
                     } else {
                         LogHelper.d(TAG, "toEnqueue, onResponse Fail:" + response.code());
-//                        if(null != mLoadingDialog) {
-//                            mLoadingDialog.dismiss();
-//                        }
+                        dismissDlg();
                         listener.onRequestFail(response.code(), response.message());
                     }
                 } else {
                     LogHelper.d(TAG, "toEnqueue, onResponse Fail");
-//                    if(null != mLoadingDialog) {
-//                        mLoadingDialog.dismiss();
-//                    }
+                    dismissDlg();
                     listener.onRequestFail(response.code(), response.message());
                 }
             }
@@ -128,9 +126,7 @@ public class RetrofitBase {
             @Override
             public void onFailure(Call<T> call, Throwable t) {
                 LogHelper.d(TAG, "toEnqueue, onFailure Fail");
-//                if(null != mLoadingDialog) {
-//                    mLoadingDialog.dismiss();
-//                }
+                dismissDlg();
                 listener.onRequestFail(AppConfigInterface.RESULT_FAIL_UNKNOW, null);
             }
         });
@@ -138,6 +134,15 @@ public class RetrofitBase {
 
     public static void stopLoadingDlg(Context context) {
 //        if(null != mContextRef && context == mContextRef.get() && null != mLoadingDialog) {
+//            mLoadingDialog.dismiss();
+//            mLoadingDialog = null;
+//        }
+    }
+
+    private static void dismissDlg() {
+//        if(null != mLoadingDialog && null != mContextRef && null != mContextRef.get()
+//                && mContextRef.get() instanceof Activity
+//                && ! ((Activity) mContextRef.get()).isFinishing()) {
 //            mLoadingDialog.dismiss();
 //            mLoadingDialog = null;
 //        }
